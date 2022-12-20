@@ -1,9 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.express as px
-import seaborn as sns
-import plotly.graph_objects as go
 import datetime
 import altair as alt
 import numpy as np
