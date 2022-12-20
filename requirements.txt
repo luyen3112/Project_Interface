@@ -1,0 +1,9 @@
+altair==4.2.0
+pandas==1.5.2
+pickle==4.0
+pyarrow==10.0.1
+sklearn==1.1.2
+streamlit==1.15.2
+xgboost==1.7.1
+numpy==1.21.5
+fastparquet==2022.12.0
