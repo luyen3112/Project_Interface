@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 import altair as alt
 import numpy as np
+import dask.dataframe as dd
 
 st.set_page_config(page_title="Home Page",
                 page_icon = ":pig_nose:",
@@ -19,14 +20,20 @@ st.markdown("##")
 
 @st.cache
 def get_data():
-    game = pd.read_parquet("EDA/game.parquet",engine = 'fastparquet')
-    info = pd.read_parquet("EDA/info.parquet", engine = 'fastparquet')
-    match = pd.read_parquet("EDA/match.parquet", engine = 'fastparquet')
-    data_loc = pd.read_parquet("EDA/a.parquet",engine = 'fastparquet')
-    data_loc_1 = pd.read_parquet("EDA/c.parquet",engine = 'fastparquet')
+    game = dd.read_parquet("EDA/game.parquet",engine = 'fastparquet')
+    info = dd.read_parquet("EDA/info.parquet", engine = 'fastparquet')
+    match = dd.read_parquet("EDA/match.parquet", engine = 'fastparquet')
+    data_loc = dd.read_parquet("EDA/a.parquet",engine = 'fastparquet')
+    data_loc_1 = dd.read_parquet("EDA/c.parquet",engine = 'fastparquet')
     return game, info, match, data_loc, data_loc_1
 
 game, info, match, data_loc, data_loc_1 = get_data()
+
+game = game.compute()
+info = info.compute()
+match = match.compute()
+data_loc = data_loc.compute()
+data_loc_1 = data_loc_1.compute()
 
 game['order_time'] =  pd.to_datetime(game['order_time'] , format='%Y-%m-%d')
 info['date'] =  pd.to_datetime(info['date'] , format='%Y-%m-%d')
@@ -47,21 +54,27 @@ option = st.sidebar.selectbox(
     'Select by Day or Month',
     ('All Time', 'Week'))
 
+# info['date'].dt.day == int(str(date_select).split("-")[2]) = info['date'].dt.day == int(str(date_select).split("-")[2])
+# info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique() = info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique()
+# game['order_time'].dt.day == int(str(date_select).split("-")[2]) = game['order_time'].dt.day == int(str(date_select).split("-")[2])
+# match['date'].dt.day == int(str(date_select).split("-")[2])  = match['date'].dt.day == int(str(date_select).split("-")[2]) 
+
+
 b1, b2, b3= st.columns(3)
 if per == "Number":
     b1.metric("Number of User this day", info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique(), 
     str(info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique()- info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique()) + " than the day before")
     b2.metric("Number of Match this day", len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2])]),
     str(len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2]) ]) - len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2])-1])) + " than the day before")
-    b3.metric("Number of Finding Match this day", len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])]),
-    str(len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2]) ]) - len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])-1])) + " than the day before")
+    b3.metric("Number of Finding Match this day", len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2]) ]),
+    str(len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])  ]) - len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])-1])) + " than the day before")
 if per == "Percentage":
     b1.metric("Number of User this day", info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique(), 
     str(round(np.float64(info.loc[info['date'].dt.day == int(str(date_select).split("-")[2])].account_id.nunique()- info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique())/info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique(),2)*100) + "% than the day before")
     b2.metric("Number of Match this day", len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2])]),
     str(round(np.float64(len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2]) ]) - len(game.loc[game['order_time'].dt.day == int(str(date_select).split("-")[2])-1]))/info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique(),2)*100) + "% than the day before")
-    b3.metric("Number of Finding Match this day", len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])]),
-    str(round(np.float64(len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2]) ]) - len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])-1]))/info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique(),2)*100) + "% than the day before")
+    b3.metric("Number of Finding Match this day", len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2]) ]),
+    str(round(np.float64(len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2])  ]) - len(match.loc[match['date'].dt.day == int(str(date_select).split("-")[2]) -1]))/info.loc[info['date'].dt.day == int(str(date_select).split("-")[2]) - 1].account_id.nunique(),2)*100) + "% than the day before")
 
 
 ct = game.mode_game.value_counts()
