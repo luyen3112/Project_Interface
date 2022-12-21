@@ -6,3 +6,4 @@ streamlit==1.15.2
 xgboost==1.7.1
 numpy==1.21.5
 fastparquet==2022.12.0
+dask==2022.02.1
